@@ -1,0 +1,68 @@
+name: "ARSC Labels"
+description: "A GitHub Action (by WAAC) that adds, remove, set and clears labels to/from issues or pull requests."
+
+branding:
+  icon: "bookmark"
+  color: "purple"
+
+inputs:
+  api:
+    description: "GitHub API URL"
+    required: false
+    default: "2022-11-28"
+  token:
+    description: "GitHub Token"
+    required: true
+  operation:
+    description: "Operation to be performed"
+    required: true
+  labels:
+    description: "Comma-separated list of labels to be added or removed"
+    required: false
+  object-id:
+    description: "Issue or pull request number"
+    required: true
+  owner:
+    description: "Repository owner"
+    required: false
+    default: ${{ github.repository_owner }}
+  repository:
+    description: "Repository name"
+    required: false
+    default: ${{ github.event.repository.name }}
+
+outputs:
+  response:
+    description: "Response from the action"
+    value: ${{ steps.run_script.outputs.response }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: wagner-cotta/arsc-label
+        token: ${{inputs.token}}
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: pip install -r requirements.txt
+      shell: bash
+
+    - name: Run Script
+      id: run_script
+      run: python src/arsc_label.py
+      shell: bash
+      env:
+        api: ${{ inputs.api }}
+        owner: ${{ inputs.owner }}
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
+        operation: ${{ inputs.operation }}
+        labels: ${{ inputs.labels }}
+        obj_id: ${{ inputs.object-id }}
